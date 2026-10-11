@@ -1,0 +1,1399 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#222">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>物流管理システム</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <style>
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: #f4f5f7;
+      color: #222;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", sans-serif
+    }
+
+    header {
+      background: #222;
+      color: #fff;
+      padding: 14px 18px;
+      position: sticky;
+      top: 0;
+      z-index: 20
+    }
+
+    header h1 {
+      font-size: 20px;
+      margin: 0
+    }
+
+    header small {
+      opacity: .78
+    }
+
+    .wrap {
+      max-width: 1280px;
+      margin: auto;
+      padding: 16px
+    }
+
+    .nav {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 4px
+    }
+
+    .navGroup {
+      flex: 1 0 auto;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 12px;
+      box-shadow: 0 1px 5px #00000010
+    }
+
+    .navTitle {
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 10px
+    }
+
+    .navButtons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: nowrap
+    }
+
+    .navButtons button {
+      flex: 1 0 auto;
+      min-width: 0;
+      white-space: nowrap;
+      padding: 10px 12px
+    }
+
+    button {
+      font: inherit;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      background: #222;
+      color: #fff;
+      cursor: pointer
+    }
+
+    button.secondary {
+      background: #e5e7eb;
+      color: #222
+    }
+
+    label.fileBtn {
+      display: inline-flex;
+      align-items: center;
+      font: inherit;
+      font-weight: 400;
+      margin: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      background: #222;
+      color: #fff;
+      cursor: pointer
+    }
+
+    label.fileBtn.secondary {
+      background: #e5e7eb;
+      color: #222
+    }
+
+    button.danger {
+      background: #b42318
+    }
+
+    button:disabled {
+      opacity: .45;
+      cursor: not-allowed
+    }
+
+    .navBtn {
+      background: #e5e7eb;
+      color: #222
+    }
+
+    .navBtn.active {
+      background: #222;
+      color: #fff
+    }
+
+    .page {
+      display: none
+    }
+
+    .page.active {
+      display: block
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 5px #00000012
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    .field {
+      flex: 1;
+      min-width: 190px
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 5px
+    }
+
+    input,
+    select,
+    button {
+      font: inherit
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #cfd3d8;
+      border-radius: 8px;
+      background: #fff
+    }
+
+    .actions,
+    .toolbar,
+    .bulkFields,
+    .applyActions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: end
+    }
+
+    .bulkFields .field {
+      flex: 1;
+      min-width: 190px
+    }
+
+    .applyActions {
+      margin-top: 10px;
+      align-items: stretch;
+      flex-wrap: nowrap
+    }
+
+    .applyActions button {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 10px 6px;
+      font-size: 13px
+    }
+
+    @media(max-width:760px) {
+      .applyActions {
+        flex-wrap: wrap
+      }
+
+      .applyActions button {
+        flex: 1 1 calc(50% - 8px)
+      }
+    }
+
+    .status {
+      padding: 2px 0 2px 10px;
+      border-left: 3px solid #c5c9ce;
+      border-radius: 0;
+      background: none;
+      margin-top: 10px;
+      font-size: 14px;
+      font-weight: 400;
+      color: #555;
+      line-height: 1.6
+    }
+
+    .status.ok {
+      background: none;
+      border-left-color: #1f9d55;
+      color: #14663a
+    }
+
+    .status.warn {
+      background: none;
+      border-left-color: #d98a0b;
+      color: #8a5a00
+    }
+
+    .status.err {
+      background: none;
+      border-left-color: #c53030;
+      color: #b42318
+    }
+
+    .ok {
+      background: #e8f7ed
+    }
+
+    .warn {
+      background: #fff4d6
+    }
+
+    .err {
+      background: #fdecec
+    }
+
+    .note {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.65
+    }
+
+    .count {
+      font-size: 13px;
+      color: #555;
+      margin-left: auto
+    }
+
+    .camera {
+      width: 100%;
+      max-width: 650px;
+      margin-top: 12px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #111
+    }
+
+    .camStage {
+      position: relative;
+      background: #000
+    }
+
+    .camStage video {
+      width: 100%;
+      height: auto;
+      max-height: 68vh;
+      display: block;
+      object-fit: contain;
+      background: #000
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none
+    }
+
+    .scanBadge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #fff;
+      color: #222;
+      padding: 6px 10px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 700;
+      max-width: 68%
+    }
+
+    .scanBadge.hit {
+      background: #2ecc71;
+      color: #fff
+    }
+
+    .scanBadge.dup {
+      background: #f5a623;
+      color: #fff
+    }
+
+    .scanBadge.bad {
+      background: #e5484d;
+      color: #fff
+    }
+
+    .scanLive {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #000a;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 700
+    }
+
+    .scanBanner {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      top: 52px;
+      padding: 12px;
+      border-radius: 10px;
+      text-align: center;
+      font-weight: 800;
+      font-size: 16px;
+      color: #fff;
+      opacity: 0;
+      transform: translateY(-6px);
+      transition: .15s;
+      pointer-events: none
+    }
+
+    .scanBanner.show {
+      opacity: 1;
+      transform: none
+    }
+
+    .scanBanner.ok {
+      background: #1f9d55
+    }
+
+    .scanBanner.dup {
+      background: #d98a0b
+    }
+
+    .scanBanner.bad {
+      background: #c53030
+    }
+
+    .liveText {
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      bottom: 8px;
+      color: #fff;
+      background: #000a;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 12px;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden
+    }
+
+    .liveText:empty {
+      display: none
+    }
+
+    .camTools {
+      display: none;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 10px;
+      background: #1b1b1b;
+      color: #fff;
+      font-size: 13px
+    }
+
+    .camTools button {
+      padding: 6px 12px
+    }
+
+    .camTools label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      margin: 0;
+      font-weight: 400
+    }
+
+    .qrgrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px
+    }
+
+    .qritem {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 8px;
+      background: #fff;
+      position: relative
+    }
+
+    .qritem img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: contain;
+      background: #fff
+    }
+
+    .check {
+      position: absolute;
+      top: 7px;
+      left: 7px;
+      width: 20px;
+      height: 20px;
+      z-index: 2
+    }
+
+    .tablewrap {
+      overflow: auto
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px
+    }
+
+    th,
+    td {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+      vertical-align: middle
+    }
+
+    th {
+      background: #f7f7f8
+    }
+
+    .thumb {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      border: 1px solid #ddd;
+      border-radius: 6px
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 99px;
+      background: #eee;
+      font-size: 12px
+    }
+
+    .empty {
+      text-align: center;
+      color: #777;
+      padding: 28px
+    }
+
+    /* QR一覧(グリッド)の中でも、「該当なし」の文章は全列をまたいで横一列に表示 */
+    .qrgrid .empty {
+      grid-column: 1 / -1
+    }
+
+    .urlList {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 55vh;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch
+    }
+
+    .urlRow {
+      display: grid;
+      grid-template-columns: 28px 34px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      margin: 0;
+      font-weight: 400
+    }
+
+    .urlRow.sel {
+      background: #eef5ff;
+      border-color: #7aa7ff
+    }
+
+    .urlRow input[type=checkbox] {
+      width: 22px;
+      height: 22px;
+      margin: 0;
+      padding: 0
+    }
+
+    .urlIndex {
+      color: #666;
+      font-weight: 600;
+      text-align: right;
+      font-size: 13px
+    }
+
+    .urlText {
+      overflow-wrap: anywhere;
+      word-break: normal;
+      font-size: 14px;
+      line-height: 1.5;
+      min-width: 0
+    }
+
+    .urlRow.noTag {
+      grid-template-columns: 28px 34px minmax(0, 1fr)
+    }
+
+    .sentTime {
+      display: block;
+      margin-top: 2px;
+      font-size: 12px;
+      color: #666;
+      font-weight: 400
+    }
+
+    .hallGroup {
+      margin-bottom: 18px
+    }
+
+    .hallHead {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      background: #f1f3f5;
+      border-radius: 8px;
+      border-left: 5px solid #222
+    }
+
+    .hallHead h3 {
+      margin: 0;
+      font-size: 16px
+    }
+
+    .hallHead .count {
+      margin-left: 0
+    }
+
+    .hallHead button {
+      margin-left: auto;
+      padding: 6px 10px;
+      font-size: 13px
+    }
+
+    .libWarn {
+      margin-bottom: 14px;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid #f0c8c8;
+      border-left: 5px solid #c53030;
+      border-radius: 8px;
+      color: #b42318;
+      font-size: 14px;
+      line-height: 1.6
+    }
+
+    .libWarn button {
+      margin-left: 8px;
+      padding: 6px 12px
+    }
+
+    .tag {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 99px;
+      background: #eee;
+      color: #555;
+      white-space: nowrap
+    }
+
+    .tag.sent {
+      background: #d9f2e0;
+      color: #14663a
+    }
+
+    .transferCard {
+      border: 2px solid #d9e7ff
+    }
+
+    .settings textarea {
+      width: 100%;
+      min-height: 150px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      font: inherit
+    }
+
+    .storeSuggestWrap {
+      position: relative
+    }
+
+    .storeSuggest {
+      display: none;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 100%;
+      z-index: 40;
+      background: #fff;
+      border: 1px solid #cfd3d8;
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 5px 14px #0002;
+      max-height: 260px;
+      overflow: auto
+    }
+
+    .storeSuggest.show {
+      display: block
+    }
+
+    .storeSuggestItem {
+      padding: 10px 12px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer
+    }
+
+    .dateField {
+      position: relative
+    }
+
+    .dateField input {
+      position: relative;
+      z-index: 1
+    }
+
+    .dateInputRow {
+      display: flex;
+      gap: 8px;
+      align-items: stretch
+    }
+
+    .dateInputRow > input[type="text"] {
+      flex: 1;
+      min-width: 0
+    }
+
+    .datePickerWrap {
+      position: relative;
+      flex: 0 0 auto
+    }
+
+    .datePickerWrap button {
+      height: 100%;
+      white-space: nowrap
+    }
+
+    .datePickerWrap input[type="date"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>物流管理システム v6.0</h1>
+  </header>
+  <div class="wrap">
+    <div id="libWarn" class="libWarn" style="display:none"></div>
+
+    <div class="nav">
+      <div class="navGroup">
+        <div class="navTitle">スマホ作業</div>
+        <div class="navButtons">
+          <button class="navBtn active" data-page="scan">① QRコード読取 / URL送信</button>
+          <button class="navBtn" data-page="sent">② 送信済み</button>
+        </div>
+      </div>
+      <div class="navGroup">
+        <div class="navTitle">PC作業</div>
+        <div class="navButtons">
+          <button class="navBtn" data-page="manage">③ QRコード生成 / ラベル付与</button>
+          <button class="navBtn" data-page="print">④ 印刷準備</button>
+          <button class="navBtn" data-page="printed">⑤ 印刷済み</button>
+        </div>
+      </div>
+      <div class="navGroup">
+        <div class="navTitle">共通作業</div>
+        <div class="navButtons"><button class="navBtn" data-page="settings">⚙ 設定</button></div>
+      </div>
+    </div>
+
+    <section id="scan" class="page active">
+      <div class="card">
+        <h2>手順1：QRコード読取</h2>
+        <p class="note">「スキャン開始」を押してQRコードをカメラに向けてください。<br>画面全体からQRコードを自動で検出し、読み取れたURLだけを保存します。<br>同じURLは重複登録しません。</p>
+        <div class="actions">
+          <button id="startScan">スキャン開始</button>
+          <button id="stopScan" class="secondary" disabled>停止</button>
+        </div>
+        <div id="cameraBox" class="camera" style="display:none">
+          <div class="camStage">
+            <video id="video" playsinline muted autoplay></video>
+            <svg id="overlay" class="overlay" preserveAspectRatio="xMidYMid meet"></svg>
+            <div class="scanBadge" id="scanBadge">準備中</div>
+            <div class="scanLive" id="scanLive">今回 0件</div>
+            <div class="scanBanner" id="scanBanner"></div>
+            <div class="liveText" id="liveText"></div>
+          </div>
+          <div class="camTools" id="camTools">
+            <button id="torchBtn" class="secondary" style="display:none">ライトON</button>
+            <label id="zoomWrap" style="display:none">拡大<input id="zoomRange" type="range" min="1" max="3" step="0.1"
+                value="1"></label>
+          </div>
+        </div>
+        <div id="scanStatus" class="status">まだQRコードは読み取られていません。</div>
+      </div>
+
+      <div class="card">
+        <h2>手順2：URL確認</h2>
+        <p class="note">送信したいURLを選んでください。<br>行のどこをタップしても選択 / 解除できます。</p>
+        <div class="actions">
+          <button id="selectPendingAll" class="secondary">全選択</button>
+          <button id="unselectPendingAll" class="secondary">選択解除</button>
+          <button id="deletePendingSelected" class="danger">選択URL削除</button>
+        </div>
+        <div style="margin-top:8px"><span id="scanCount" class="count" style="margin-left:0"></span></div>
+        <div id="pendingGrid" class="urlList" style="margin-top:8px"></div>
+      </div>
+
+      <div class="card transferCard">
+        <h2>手順3：URL送信</h2>
+        <p class="note">手順2で選択したURLをTXTファイルにまとめ、指定したメールアドレスへ送信します。<br>送信完了したURLだけ、手順2の一覧から「② 送信済み」へ移動します。</p>
+        <div class="actions">
+          <button id="sendSelected">URL送信</button>
+          <button id="testGasStep3" class="secondary">
+            URL送信GAS接続テスト
+          </button>
+        </div>
+
+        <div id="transferConfigStatusStep3" class="status">未設定</div>
+        <div id="transferStatus" class="status" style="display:none"></div>
+      </div>
+    </section>
+
+    <section id="sent" class="page">
+      <div class="card">
+        <h2>手順4：送信済みURL確認</h2>
+        <p class="note">
+          メールで送信したURLの履歴です。<br>PCにメールが届かなかった場合など、特定のURLを選択して手順2に戻すことでURL送信をやり直すことができます。<br>履歴はメール送信から24時間経過すると自動で消去されます。
+        </p>
+        <div class="actions">
+          <button id="restoreSent">手順2に戻す</button>
+          <button id="selectSentAll" class="secondary">全選択</button>
+          <button id="unselectSentAll" class="secondary">選択解除</button>
+        </div>
+        <div style="margin-top:8px"><span id="sentCount" class="count" style="margin-left:0"></span></div>
+        <div id="sentStatus" class="status" style="display:none"></div>
+        <div id="sentGrid" class="urlList" style="margin-top:8px"></div>
+      </div>
+    </section>
+
+    <section id="manage" class="page">
+      <div class="card">
+        <h2>手順5：QRコード生成</h2>
+        <p class="note">URL一覧（〇〇.txt）をアップロードしてください。<br>URLからQRコード画像を生成します。<br>同じURLは重複登録しません。</p>
+        <label class="fileBtn">
+          URL一覧を一括読込
+          <input id="pcImportImages" type="file" accept=".txt,.csv,text/plain,text/csv" multiple=""
+            style="display:none">
+        </label>
+        <div id="pcImportStatus" class="status">まだURLは読み込まれていません。</div>
+      </div>
+
+      <div class="card">
+        <h2>手順6：ラベルの付与</h2>
+        <div class="bulkFields">
+          <div class="field dateField" id="dateWrap">
+            <label>納品日</label>
+            <div class="dateInputRow">
+              <input id="bulkDateText" type="text" placeholder="YYYY/MM/DD" inputmode="numeric" aria-label="納品日を入力">
+              <div class="datePickerWrap">
+                <button type="button" id="openBulkDate" class="secondary">カレンダー</button>
+                <input id="bulkDate" type="date" aria-label="カレンダーから納品日を選択">
+              </div>
+            </div>
+          </div>
+          <div class="field"><label>本店名</label><select id="bulkMain">
+              <option value="">本店名を選択</option>
+            </select></div>
+          <div class="field"><label>ホール名</label><select id="bulkHall">
+              <option value="">ホール名を選択（先に本店名を選択）</option>
+            </select></div>
+          <div class="field"><label>商品名</label><input id="bulkProduct" list="productList" placeholder="商品名を入力"><datalist
+              id="productList"></datalist></div>
+        </div>
+        <div class="applyActions">
+          <button id="applyDate">選択QRに納品日を付与</button>
+          <button id="applyMain">選択QRに本店名を付与</button>
+          <button id="applyHall">選択QRにホール名を付与</button>
+          <button id="applyProduct">選択QRに商品名を付与</button>
+        </div>
+        <div class="toolbar" style="margin-top:12px">
+          <div class="field"><label>未入力の項目で絞り込み</label><select id="manageMissing">
+              <option value="">すべて表示</option>
+              <option value="date">納品日が未入力</option>
+              <option value="main">本店名が未入力</option>
+              <option value="hall">ホール名が未入力</option>
+              <option value="product">商品名が未入力</option>
+            </select></div>
+          <div class="field"><label>QRコードの生成日で絞り込み</label><select id="manageImported">
+              <option value="">すべて表示</option>
+            </select></div>
+        </div>
+        <div class="actions" style="margin-top:12px">
+          <button id="selectAll" class="secondary">全選択</button>
+          <button id="unselectAll" class="secondary">選択解除</button>
+          <button id="deleteSelected" class="danger">選択QR削除</button>
+          <button id="clearLabels" class="danger">選択QRのラベルを消去</button>
+        </div>
+      </div>
+      <div class="card">
+        <div style="margin-bottom:10px"><span id="manageCount" class="count" style="margin-left:0"></span></div>
+        <div id="manageBody" class="qrgrid"></div>
+      </div>
+    </section>
+
+    <section id="print" class="page">
+      <div class="card">
+        <h2>手順7：印刷するQRコード選択</h2>
+        <p class="note">納品日・ホール名で絞り込めます。絞り込みは任意です。表示されたQRコードから印刷対象を選択してください。</p>
+        <div class="toolbar">
+          <div class="field"><label>納品日で絞り込み</label><select id="printDate">
+              <option value="">すべて表示</option>
+            </select></div>
+          <div class="field"><label>ホール名で絞り込み</label><select id="printHall">
+              <option value="">すべて表示</option>
+            </select></div>
+          <div class="field"><label>1ページあたり</label><select id="perPage">
+              <option value="4">4個（2行×2列）</option>
+              <option value="6">6個（3行×2列）</option>
+            </select></div>
+        </div>
+        <div class="actions" style="margin-top:12px">
+          <button id="makePdf" disabled>A4 PDF作成</button>
+          <button id="selectPrintAll" class="secondary">全選択</button>
+          <button id="unselectPrintAll" class="secondary">選択解除</button>
+        </div>
+      </div>
+      <div class="card">
+        <div style="margin-bottom:10px"><span id="printCount" class="count" style="margin-left:0"></span></div>
+        <div id="printBody" class="qrgrid"></div>
+      </div>
+    </section>
+
+    <section id="printed" class="page">
+      <div class="card">
+        
+        <h2>手順8：印刷済みQRコード確認</h2>
+        <p class="note">PDF作成後のQRコードをホール名ごとに分けて保管しています。<br>特定のQRコードを選択して手順7に戻すことで再びQRコードをPDFに含めることができます。<br>納品日とホール名で絞り込めます。</p>
+        <div class="toolbar">
+          <div class="field"><label>納品日</label><select id="printedDate">
+              <option value="">すべて表示</option>
+            </select></div>
+          <div class="field"><label>ホール名</label><select id="printedHall">
+              <option value="">すべて表示</option>
+            </select></div>
+        </div>
+        <div class="actions" style="margin-top:12px">
+          <button id="restorePrinted">手順7に戻す</button>
+          <button id="selectPrintedAll" class="secondary">全選択</button>
+          <button id="unselectPrintedAll" class="secondary">選択解除</button>
+        </div>
+      </div>
+      <div class="card">
+        <div style="margin-bottom:10px"><span id="printedCount" class="count" style="margin-left:0"></span></div>
+        <div id="printedBody"></div>
+      </div>
+    </section>
+
+    <section id="settings" class="page">
+      <div class="card settings">
+        <h2>Google Apps Script / 送信先メールアドレス設定</h2>
+        <p class="note">スマホからPCへメールを自動送信するために必要な設定です。<br>Google Apps Script（GAS）のURL・転送トークン・送信先メールアドレスを設定してください。</p>
+        <div class="row">
+          <div class="field"><label>Google Apps Script URL</label><input id="gasUrl" type="url"
+              placeholder="https://script.google.com/.../.../exec"></div>
+          <div class="field"><label>転送トークン</label><input id="transferToken" type="password"
+              placeholder="システム管理者に問い合わせてください"></div>
+          <div class="field"><label>送信先Gmail</label><input id="transferTo" type="email" placeholder="example@gmail.com">
+          </div>
+        </div>
+        <div class="actions"><button id="saveTransferSettings">移行設定を保存</button><button id="testGas"
+            class="secondary">GAS接続テスト</button></div>
+        <div id="transferConfigStatus" class="status">未設定</div>
+      </div>
+      <div class="card settings">
+        <h2>本店名 / ホール名設定</h2>
+        <p class="note">1行に「本店名,ホール名」の形式で入力してください。同じ本店名に複数ホールを登録できます。例：本店A,ホールA1</p>
+        <textarea id="hallMaster" placeholder="本店A,ホールA1&#10;本店A,ホールA2&#10;本店B,ホールB1"></textarea><button
+          id="saveSettings">本店名 / ホール名リストを保存</button>
+      </div>
+      <div class="card">
+        <h2>データ管理</h2>
+        <div class="actions"><button id="exportData" class="secondary">バックアップを書き出す</button><label
+            class="fileBtn secondary">バックアップを読み込む<input id="importData" type="file" accept="application/json"
+              style="display:none"></label><button id="wipeAll" class="danger">全データ削除</button></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+    const KEY = 'logistics_v4_data', HALLKEY = 'logistics_v4_halls', PRODUCTKEY = 'logistics_v4_products', CFGKEY = 'logistics_v4_transfer', SESSIONKEY = 'logistics_v4_session';
+    let data = JSON.parse(localStorage.getItem(KEY) || '[]');
+    let selected = new Set(), pendingSelected = new Set(), printSelected = new Set(), printedSelected = new Set();
+    let sessionIds = new Set(JSON.parse(localStorage.getItem(SESSIONKEY) || '[]'));
+    let camAdded = new Set(), camDup = new Set(), camBad = new Set(), stream = null, track = null, rafId = 0, detector = null, useNative = false, scanning = false, scanBusy = false, lastRun = 0, missCount = 0, lastHitAt = 0, torchOn = false, audioCtx = null, bannerTimer = 0, rateCount = 0, rateShown = 0, rateTime = 0;
+    const recent = new Map(), work = document.createElement('canvas'), wctx = work.getContext('2d', {willReadFrequently: true});
+    const defaultHalls = [{main: '本店A', hall: 'ホールA1'}, {main: '本店A', hall: 'ホールA2'}, {main: '本店B', hall: 'ホールB1'}];
+    function hallEntries() {const raw = JSON.parse(localStorage.getItem(HALLKEY) || 'null'); if (!raw) return defaultHalls; return raw.map(x => typeof x === 'string' ? {main: '未分類', hall: x} : x)}
+    function mainNames() {return [...new Set(hallEntries().map(x => x.main))].sort()}
+    function hallsFor(main) {return hallEntries().filter(x => x.main === main).map(x => x.hall).sort()}
+
+    function missingLibs() {const m = []; if (typeof window.jsQR !== 'function') m.push('QR読取用(jsQR)'); if (!window.jspdf) m.push('PDF作成用(jsPDF)'); if (typeof window.qrcode !== 'function') m.push('QR生成用(qrcode-generator)'); return m}
+    function checkLibs() {
+      const m = missingLibs(), el = $('libWarn');
+      if (!m.length) {el.style.display = 'none'; return}
+      el.style.display = 'block';
+      el.innerHTML = `<span>必要なプログラム部品を読み込めませんでした：${m.join('、')}。通信状態を確認して「再読み込み」を押してください。読み込めるまで、該当する機能は使えません。</span><button id="libReload">再読み込み</button>`;
+      $('libReload').onclick = () => location.reload()
+    }
+    function save() {localStorage.setItem(KEY, JSON.stringify(data))}
+    function saveSession() {localStorage.setItem(SESSIONKEY, JSON.stringify([...sessionIds]))}
+    function products() {return [...new Set([...JSON.parse(localStorage.getItem(PRODUCTKEY) || '[]'), ...data.map(x => x.product).filter(Boolean)])]}
+    function esc(s) {return String(s ?? '').replace(/[&<>"']/g, m => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[m]))}
+    function dateLabel(d) {if (!d) return ''; const [y, m, day] = d.split('-'); return `${y}/${m.padStart(2, '0')}/${day.padStart(2, '0')}`}
+    function cfg() {return JSON.parse(localStorage.getItem(CFGKEY) || '{}')}
+    function showPage(id) {if (id !== 'scan' && scanning) stopScan(); document.querySelectorAll('.page').forEach(x => x.classList.toggle('active', x.id === id)); document.querySelectorAll('.navBtn').forEach(x => x.classList.toggle('active', x.dataset.page === id)); if (id === 'sent') renderSent(); if (id === 'manage') renderManage(); if (id === 'print') refreshPrint(); if (id === 'printed') renderPrinted()}
+    document.querySelectorAll('.navBtn').forEach(b => b.onclick = () => showPage(b.dataset.page));
+
+    function status(msg, type = '') {const e = $('scanStatus'); e.textContent = msg; e.className = 'status ' + type}
+    function addQR(image, raw, session = true) {
+      const key = 'qr:' + raw; if (data.some(x => x.qrKey === key)) return false;
+      const id = crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
+      const scannedAt = new Date().toISOString();
+      data.push({id, qrKey: key, url: raw, image, date: '', mainName: '', hall: '', product: '', status: 'unprinted', createdAt: scannedAt, scannedAt});
+      if (session) {sessionIds.add(id); saveSession()} save(); return true
+    }
+    function registerScan(raw) {
+      const ex = data.find(x => x.qrKey === 'qr:' + raw);
+      if (ex) {if (sessionIds.has(ex.id)) return 'dup'; purgeSent(); if (ex.sentAt) return 'sent'; sessionIds.add(ex.id); saveSession(); return 'relist'}
+      addQR('', raw, true); return 'new'
+    }
+    function urlHtml(u) {return esc(String(u || '').replace(/([\/?&=#])/g, '$1\u200b'))}
+    function beep(f = 1100, d = .09) {try {if (!audioCtx) return; const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.frequency.value = f; g.gain.value = .15; o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + d)} catch (e) { } }
+    function banner(type, msg) {const b = $('scanBanner'); b.textContent = msg; b.className = 'scanBanner show ' + type; clearTimeout(bannerTimer); bannerTimer = setTimeout(() => b.classList.remove('show'), 1800)}
+    function badge(type, msg) {const b = $('scanBadge'); b.textContent = msg; b.className = 'scanBadge ' + type}
+
+    async function initDetector() {
+      detector = null; useNative = false;
+      if ('BarcodeDetector' in window) {try {const f = await BarcodeDetector.getSupportedFormats(); if (f.includes('qr_code')) {detector = new BarcodeDetector({formats: ['qr_code']}); useNative = true} } catch (e) { } }
+    }
+    function setupTrackControls() {
+      const caps = (track && track.getCapabilities && track.getCapabilities()) || {};
+      if (caps.focusMode && caps.focusMode.includes('continuous')) track.applyConstraints({advanced: [{focusMode: 'continuous'}]}).catch(() => { });
+      torchOn = false; $('torchBtn').textContent = 'ライトON'; $('torchBtn').style.display = caps.torch ? '' : 'none';
+      if (caps.zoom) {const z = $('zoomRange'); z.min = caps.zoom.min; z.max = caps.zoom.max; z.step = caps.zoom.step || 0.1; z.value = (track.getSettings && track.getSettings().zoom) || caps.zoom.min; $('zoomWrap').style.display = ''} else $('zoomWrap').style.display = 'none';
+      $('camTools').style.display = (caps.torch || caps.zoom) ? 'flex' : 'none'
+    }
+    $('torchBtn').onclick = async () => {if (!track) return; torchOn = !torchOn; try {await track.applyConstraints({advanced: [{torch: torchOn}]}); $('torchBtn').textContent = torchOn ? 'ライトOFF' : 'ライトON'} catch (e) {torchOn = false} }
+    $('zoomRange').oninput = e => {if (track) track.applyConstraints({advanced: [{zoom: Number(e.target.value)}]}).catch(() => { })}
+
+    async function startScan() {
+      if (scanning) return;
+      try {audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume()} catch (e) { }
+      await initDetector();
+      if (!useNative && typeof window.jsQR !== 'function') {checkLibs(); status('QR読取用の部品(jsQR)を読み込めていないため、スキャンできません。通信状態を確認して再読み込みしてください。', 'err'); return}
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: {ideal: 'environment'}, width: {ideal: 1920}, height: {ideal: 1080}}, audio: false})
+      } catch (e) {status('カメラを起動できませんでした。HTTPSで開いているか、カメラの許可を確認してください。', 'err'); return }
+      track = stream.getVideoTracks()[0];
+      const v = $('video'); v.srcObject = stream; try {await v.play()} catch (e) { }
+      setupTrackControls();
+      $('cameraBox').style.display = 'block'; $('startScan').disabled = true; $('stopScan').disabled = false;
+      scanning = true; missCount = 0; lastHitAt = 0; rateCount = 0; rateShown = 0; rateTime = performance.now(); recent.clear();
+      camAdded = new Set(); camDup = new Set(); camBad = new Set(); $('scanLive').textContent = '今回 0件'; badge('', '探索中');
+      status(useNative ? 'スキャン中（高速モード）。QRコードをカメラに向けてください。' : 'スキャン中。QRコードをカメラに向けてください。');
+      rafId = requestAnimationFrame(tick)
+    }
+    function stopScan() {
+      const was = scanning; scanning = false; cancelAnimationFrame(rafId);
+      if (stream) {stream.getTracks().forEach(t => t.stop()); stream = null} track = null;
+      $('video').srcObject = null; $('cameraBox').style.display = 'none'; $('overlay').innerHTML = ''; $('liveText').textContent = '';
+      $('startScan').disabled = false; $('stopScan').disabled = true;
+      if (was) status(`読み取り完了：追加 ${camAdded.size}件 / 重複 ${camDup.size}件 / 読み取り不可 ${camBad.size}件`, 'ok')
+    }
+    $('startScan').onclick = startScan; $('stopScan').onclick = stopScan;
+    document.addEventListener('visibilitychange', () => {if (document.hidden && scanning) stopScan()});
+
+    function tryJsQR(v, sx, sy, sw, sh, maxW) {
+      const sc = Math.min(1, maxW / sw), w = Math.max(1, Math.round(sw * sc)), h = Math.max(1, Math.round(sh * sc));
+      work.width = w; work.height = h; wctx.drawImage(v, sx, sy, sw, sh, 0, 0, w, h);
+      const im = wctx.getImageData(0, 0, w, h), code = window.jsQR(im.data, w, h, {inversionAttempts: 'attemptBoth'});
+      if (!code || !code.data) return null;
+      const L = code.location, pts = [L.topLeftCorner, L.topRightCorner, L.bottomRightCorner, L.bottomLeftCorner].map(p => ({x: sx + p.x / sc, y: sy + p.y / sc}));
+      return {data: code.data, points: pts}
+    }
+    async function detectFrame(v) {
+      if (useNative) {
+        const codes = await detector.detect(v);
+        return codes.filter(c => c.rawValue).map(c => {let pts = c.cornerPoints; if (!pts || pts.length < 4) {const b = c.boundingBox; pts = [{x: b.x, y: b.y}, {x: b.x + b.width, y: b.y}, {x: b.x + b.width, y: b.y + b.height}, {x: b.x, y: b.y + b.height}]} return {data: c.rawValue, points: pts}})
+      }
+      // jsQR: 1回に1パス。全体→中央60%→中央40%(等倍)の順に切り替えて小さなQRも拾う。
+      const vw = v.videoWidth, vh = v.videoHeight, pass = missCount % 3; let r = null;
+      if (pass === 0) r = tryJsQR(v, 0, 0, vw, vh, 800);
+      else if (pass === 1) {const cw = vw * .6, ch = vh * .6; r = tryJsQR(v, (vw - cw) / 2, (vh - ch) / 2, cw, ch, 800)}
+      else {const cw = vw * .4, ch = vh * .4; r = tryJsQR(v, (vw - cw) / 2, (vh - ch) / 2, cw, ch, 800)}
+      return r ? [r] : []
+    }
+    function drawOverlay(list, v) {
+      const svg = $('overlay'), vw = v.videoWidth, vh = v.videoHeight;
+      if (svg.dataset.w !== String(vw) || svg.dataset.h !== String(vh)) {svg.setAttribute('viewBox', `0 0 ${vw} ${vh}`); svg.dataset.w = vw; svg.dataset.h = vh}
+      const sw = Math.max(3, Math.round(vw / 180)), col = {ok: '46,204,113', dup: '245,166,35', bad: '229,72,77'};
+      svg.innerHTML = list.map(f => {const c = col[f.state] || col.ok; return `<polygon points="${f.points.map(p => p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ')}" fill="rgba(${c},.25)" stroke="rgb(${c})" stroke-width="${sw}" stroke-linejoin="round"/>`}).join('')
+    }
+    function handleFound(list, v) {
+      const now = Date.now(); let changed = false;
+      for (const f of list) {
+        const raw = String(f.data).trim(), last = recent.get(raw); recent.set(raw, now);
+        if (last && now - last < 2500) {f.state = recent.get('state:' + raw) || 'ok'; continue}
+        if (!/^https?:\/\/\S+$/i.test(raw)) {f.state = 'bad'; camBad.add(raw); recent.set('state:' + raw, 'bad'); badge('bad', 'URL以外のQR'); banner('bad', 'URL以外のQRです（保存しません）'); status('URL以外のQRを検出しました：' + raw.slice(0, 60), 'warn'); beep(300, .2); continue}
+        const r = registerScan(raw);
+        if (r === 'new' || r === 'relist') {f.state = 'ok'; recent.set('state:' + raw, 'ok'); changed = true; badge('hit', '保存しました'); camAdded.add(raw); camDup.delete(raw); banner('ok', `✓ 保存しました（今回 ${camAdded.size}件目）`); status(`URLを保存しました（今回 ${camAdded.size}件）。次のQRをカメラに向けてください。`, 'ok'); beep(1200, .09); if (navigator.vibrate) navigator.vibrate(60)}
+        else {f.state = 'dup'; if (!camAdded.has(raw)) camDup.add(raw); recent.set('state:' + raw, 'dup'); badge('dup', '登録済み'); banner('dup', r === 'sent' ? '送信済みのURLです' : '登録済みのURLです'); status(r === 'sent' ? 'このURLは送信済みです。' : '同じURLは登録済みです。', 'warn'); beep(500, .12)}
+      }
+      drawOverlay(list, v);
+      $('liveText').textContent = '読取：' + String(list[0].data).trim();
+      if (changed) {$('scanLive').textContent = `今回 ${camAdded.size}件`; renderPending()}
+    }
+    async function tick(ts) {
+      if (!scanning) return;
+      rafId = requestAnimationFrame(tick);
+      if (scanBusy || ts - lastRun < 90) return;
+      const v = $('video'); if (v.readyState < 2 || !v.videoWidth) return;
+      scanBusy = true; lastRun = ts;
+      try {
+        const list = await detectFrame(v); rateCount++;
+        if (ts - rateTime >= 1000) {rateShown = Math.round(rateCount * 1000 / (ts - rateTime)); rateCount = 0; rateTime = ts}
+        if (list.length) {missCount = 0; lastHitAt = Date.now(); handleFound(list, v)}
+        else {
+          missCount++; drawOverlay([], v);
+          if (Date.now() - lastHitAt > 900) {$('liveText').textContent = ''; badge('', '探索中 (' + rateShown + '回/秒)')}
+        }
+      } catch (e) { }
+      scanBusy = false
+    }
+
+    function pendingRows() {return [...sessionIds].map(id => data.find(x => x.id === id)).filter(Boolean)}
+    function updatePendingCount() {
+      const rows = pendingRows(), sel = rows.filter(x => pendingSelected.has(x.id)).length;
+      $('scanCount').textContent = `選択 ${sel}件 / 全 ${rows.length}件`;
+      $('sendSelected').textContent = sel ? `URL送信（${sel}件）` : 'URL送信';
+    }
+    function renderPending() {
+      const rows = pendingRows().reverse(), n = rows.length;
+      pendingSelected.forEach(id => {if (!sessionIds.has(id)) pendingSelected.delete(id)});
+      $('pendingGrid').innerHTML = n ? rows.map((x, i) => `<label class="urlRow ${pendingSelected.has(x.id) ? 'sel' : ''}"><input class="pendingCheck" data-id="${x.id}" type="checkbox" ${pendingSelected.has(x.id) ? 'checked' : ''}><span class="urlIndex">${n - i}</span><span class="urlText">${urlHtml(x.url)}<span class="sentTime">読み取り：${x.scannedAt || x.createdAt ? fmtSent(x.scannedAt || x.createdAt) : '時刻不明'}</span></span><span class="tag ${x.sentAt ? 'sent' : ''}">${x.sentAt ? '送信済み' : '未送信'}</span></label>`).join('') : '<div class="empty">今回読み込んだURLはここに表示されます。</div>';
+      document.querySelectorAll('.pendingCheck').forEach(e => e.onchange = () => {e.checked ? pendingSelected.add(e.dataset.id) : pendingSelected.delete(e.dataset.id); e.closest('.urlRow').classList.toggle('sel', e.checked); updatePendingCount()});
+      updatePendingCount()
+    }
+    $('selectPendingAll').onclick = () => {pendingRows().forEach(x => pendingSelected.add(x.id)); renderPending()}
+    $('unselectPendingAll').onclick = () => {pendingSelected.clear(); renderPending()}
+    $('deletePendingSelected').onclick = () => {const ids = [...pendingSelected]; if (!ids.length) return alert('削除するURLを選択してください。'); if (confirm(`${ids.length}件を削除しますか？`)) {data = data.filter(x => !ids.includes(x.id)); ids.forEach(id => {sessionIds.delete(id); pendingSelected.delete(id)}); saveSession(); save(); renderPending(); renderManage()} }
+
+    function tstatus(msg, type = '') {const e = $('transferStatus'); e.style.display = 'block'; e.textContent = msg; e.className = 'status ' + type}
+    function localDate() {return new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10)}
+    async function fetchTimeout(url, opt, ms) {const ac = new AbortController(), t = setTimeout(() => ac.abort(), ms); try {return await fetch(url, {...opt, signal: ac.signal})} finally {clearTimeout(t)} }
+    async function postGas(url, payload) {
+      let r;
+      try {r = await fetchTimeout(url, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify(payload), redirect: 'follow'}, 45000)}
+      catch (e) {return navigator.onLine ? {unconfirmed: true} : {ok: false, error: 'offline'}}
+      const t = await r.text(); let j = null; try {j = JSON.parse(t)} catch (e) { }
+      return j || {ok: false, error: 'non-json'}
+    }
+    function explainErr(res) {
+      const e = String(res.error || '');
+      if (e === 'unauthorized') return '転送トークンがGAS側(Code.gs)と一致していません。共通設定とCode.gsのTRANSFER_TOKENを確認してください。';
+      if (e === 'invalid recipient') return '送信先Gmailの形式が正しくありません。';
+      if (e === 'offline') return 'オフラインです。通信状態を確認してください。';
+      if (e === 'non-json') return 'GASから想定外の応答が返りました。「アクセスできるユーザー：全員」で、新バージョンとして再デプロイしたか確認してください。';
+      if (/permission|authori|権限|承認/i.test(e)) return 'GASの承認が未完了です。Apps ScriptエディタでauthorizeOnceを1回実行して承認し、再デプロイしてください。';
+      return 'GASエラー：' + e
+    }
+    async function sendSelected() {
+      const rows = pendingRows().filter(x => pendingSelected.has(x.id));
+      if (!rows.length) return alert('送信するURLを手順2で選択してください。');
+      const c = cfg(); if (!c.url || !c.to || !c.token) return alert('共通設定でGAS URL・送信先Gmail・転送トークンを設定してください。');
+      const btn = $('sendSelected'); btn.disabled = true;
+      const per = 1000, batches = []; for (let i = 0; i < rows.length; i += per)batches.push(rows.slice(i, i + per));
+      let ok = 0, unconf = 0, fail = '';
+      for (let i = 0; i < batches.length; i++) {
+        tstatus(`送信中 ${i + 1}/${batches.length} …（そのままお待ちください）`, 'warn');
+        const b = batches[i], res = await postGas(c.url, {token: c.token, to: c.to, date: localDate(), batchId: `v6-${Date.now()}-${i + 1}`, urls: b.map(r => r.url)});
+        if (res.ok) {ok += b.length; const t = new Date().toISOString(); b.forEach(r => {r.sentAt = t; sessionIds.delete(r.id); pendingSelected.delete(r.id)}); saveSession()}
+        else if (res.unconfirmed) {unconf += b.length}
+        else {fail = explainErr(res); break}
+      }
+      save(); renderPending(); btn.disabled = false;
+      if (fail) tstatus(`送信失敗：${fail}${ok ? `（${ok}件は送信済み）` : ''}`, 'err');
+      else if (unconf) tstatus(`${ok ? ok + '件は送信確認済み。' : ''}${unconf}件は送信要求を出しましたが、GASの応答を確認できませんでした。メールが届いたか確認してください（届いていなければ「GAS接続テスト」を実行）。再送すると二重に届く場合があります。`, 'warn');
+      else tstatus(`送信完了：${ok}件（GAS応答を確認済み）。${c.to} 宛のメールを確認してください。送信したURLは「② 送信済み」で確認できます。`, 'ok')
+    }
+    $('sendSelected').onclick = sendSelected;
+    let sentSelected = new Set();
+    function fmtSent(iso) {const t = new Date(iso), p = n => String(n).padStart(2, '0'); return `${t.getFullYear()}/${t.getMonth() + 1}/${t.getDate()} ${p(t.getHours())}:${p(t.getMinutes())}:${p(t.getSeconds())}`}
+    function purgeSent() {const now = Date.now(), limit = 24 * 60 * 60 * 1000; let ch = false; data.forEach(x => {if (x.sentAt) {const sentTime = new Date(x.sentAt).getTime(); if (!Number.isFinite(sentTime) || now - sentTime >= limit) {delete x.sentAt; ch = true} } }); if (ch) save(); return ch}
+    function sentRows() {return data.filter(x => x.sentAt).sort((a, b) => b.sentAt.localeCompare(a.sentAt))}
+    function updateSentCount() {const rows = sentRows(), k = rows.filter(x => sentSelected.has(x.id)).length; $('sentCount').textContent = `選択 ${k}件 / 全 ${rows.length}件`; $('restoreSent').textContent = k ? `手順2に戻す（${k}件）` : '手順2に戻す'}
+    function renderSent() {
+      purgeSent();
+      const rows = sentRows(), n = rows.length;
+      sentSelected.forEach(id => {if (!rows.some(x => x.id === id)) sentSelected.delete(id)});
+      $('sentGrid').innerHTML = n ? rows.map((x, i) => `<label class="urlRow noTag ${sentSelected.has(x.id) ? 'sel' : ''}"><input class="sentCheck" data-id="${x.id}" type="checkbox" ${sentSelected.has(x.id) ? 'checked' : ''}><span class="urlIndex">${n - i}</span><span class="urlText">${urlHtml(x.url)}<span class="sentTime">読み取り：${x.scannedAt || x.createdAt ? fmtSent(x.scannedAt || x.createdAt) : '時刻不明'}</span><span class="sentTime">送信：${fmtSent(x.sentAt)}</span></span></label>`).join('') : '<div class="empty">送信後24時間以内のURL履歴はここに表示されます。</div>';
+      document.querySelectorAll('.sentCheck').forEach(e => e.onchange = () => {e.checked ? sentSelected.add(e.dataset.id) : sentSelected.delete(e.dataset.id); e.closest('.urlRow').classList.toggle('sel', e.checked); updateSentCount()});
+      updateSentCount()
+    }
+    $('selectSentAll').onclick = () => {sentRows().forEach(x => sentSelected.add(x.id)); renderSent()}
+    $('unselectSentAll').onclick = () => {sentSelected.clear(); renderSent()}
+    $('restoreSent').onclick = () => {
+      const rows = sentRows().filter(x => sentSelected.has(x.id)); if (!rows.length) return alert('手順2に戻すURLを選択してください。');
+      rows.forEach(x => {delete x.sentAt; sessionIds.add(x.id); sentSelected.delete(x.id)}); saveSession(); save(); renderSent(); renderPending();
+      const e = $('sentStatus'); e.style.display = 'block'; e.className = 'status ok'; e.textContent = `${rows.length}件を手順2に戻しました。「① QR連続読み込み」で再送信できます。`
+    }
+    document.addEventListener('visibilitychange', () => {if (!document.hidden) {purgeSent(); if ($('sent').classList.contains('active')) renderSent()} });
+    setInterval(() => {if (purgeSent() && $('sent').classList.contains('active')) renderSent()}, 60 * 1000);
+    async function testGas(target) {
+      const c = cfg(), out = target === 'step3'
+        ? {
+          set: (m, t) => {
+            const e = $('transferConfigStatusStep3');
+            e.textContent = m;
+            e.className = 'status ' + t
+          }
+        }
+        : {
+          set: (m, t) => {
+            const e = $('transferConfigStatus');
+            e.textContent = m;
+            e.className = 'status ' + t
+          }
+        };
+      const urlIn = target === 'step3' ? c.url : ($('gasUrl').value.trim() || c.url);
+      if (!urlIn) return out.set('GAS WebアプリURLが未設定です。共通設定で入力して保存してください。', 'warn');
+      out.set('接続確認中…', 'warn');
+      try {
+        const r = await fetchTimeout(urlIn, {method: 'GET', redirect: 'follow'}, 15000), t = (await r.text()).trim();
+        if (/logistics-system/.test(t)) out.set(/v6\.0/.test(t) ? `接続OK：${t}` : `接続はできましたが旧バージョンのGASが動いています（${t}）。Code.gsを更新し「新バージョン」としてデプロイし直してください。`, /v6\.0/.test(t) ? 'ok' : 'warn');
+        else out.set('応答がGASのものではありません。URLが「…/exec」か、アクセスできるユーザーが「全員」かを確認してください。', 'err')
+      } catch (e) {out.set('接続できませんでした（URL誤り・オフライン・アクセス権の可能性）。', 'err')}
+    }
+    $('testGasStep3').onclick = () => testGas('step3'); $('testGas').onclick = () => testGas('settings');
+
+    function makeQrDataUrl(url) {return new Promise((resolve, reject) => {try {const q = qrcode(0, 'M'); q.addData(url); q.make(); const n = q.getModuleCount(), scale = 12, quiet = 4, size = (n + quiet * 2) * scale, c = document.createElement('canvas'); c.width = size; c.height = size; const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, size, size); ctx.fillStyle = '#000'; for (let r = 0; r < n; r++)for (let col = 0; col < n; col++)if (q.isDark(r, col)) ctx.fillRect((col + quiet) * scale, (r + quiet) * scale, scale, scale); resolve(c.toDataURL('image/png'))} catch (e) {reject(e)} })}
+    async function importImages(files) {
+      if (typeof window.qrcode !== 'function') {checkLibs(); $('pcImportStatus').textContent = 'QR生成用の部品(qrcode-generator)を読み込めていません。通信状態を確認して再読み込みしてください。'; $('pcImportStatus').className = 'status err'; return}
+      const arr = [...files]; let add = 0, dup = 0, bad = 0; $('pcImportStatus').textContent = `読み込み中… 0/${arr.length}`;
+      for (let i = 0; i < arr.length; i++) {try {const txt = await arr[i].text(), urls = txt.split(/[\r\n,]+/).map(x => x.trim()).filter(x => /^https?:\/\//i.test(x)); if (!urls.length) {bad++; continue} for (const url of urls) {try {if (data.some(x => x.qrKey === 'qr:' + url)) {dup++; continue} const image = await makeQrDataUrl(url); if (addQR(image, url, false)) add++; else dup++} catch (e) {bad++} } } catch (e) {bad++} $('pcImportStatus').textContent = `読み込み中… ${i + 1}/${arr.length}`}
+      $('pcImportStatus').textContent = `読み込み完了：追加 ${add}件 / 重複 ${dup}件 / 読み取り不可 ${bad}件`; $('pcImportStatus').className = 'status ok'; renderManage()
+    }
+    $('pcImportImages').onchange = async e => {await importImages(e.target.files); e.target.value = ''}
+
+    function importedDay(x) {if (!x.createdAt) return ''; const t = new Date(x.createdAt); if (isNaN(t)) return ''; return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`}
+    function importedMatch(x, v) {return !v || (v === '__none' ? !importedDay(x) : importedDay(x) === v)}
+    const MISSING_FIELD = {date: 'date', main: 'mainName', hall: 'hall', product: 'product'};
+    function manageRows() {
+      const m = $('manageMissing').value, d = $('manageImported').value;
+      return data.filter(x =>
+        x.status === 'unprinted' &&
+        (!m || !x[MISSING_FIELD[m]]) &&
+        importedMatch(x, d)
+      )
+    }
+    function fillImportedSelect(rows) {
+      const sel = $('manageImported'), old = sel.value, ds = [...new Set(rows.map(importedDay))].filter(Boolean).sort().reverse(), hasNone = rows.some(x => !importedDay(x));
+      sel.innerHTML = '<option value="">すべて表示</option>' + ds.map(d => `<option value="${esc(d)}">${esc(dateLabel(d))}</option>`).join('') + (hasNone ? '<option value="__none">生成日不明</option>' : '');
+      if ([...sel.options].some(o => o.value === old)) sel.value = old
+    }
+    function updateManageCount() {const all = data.filter(x => x.status === 'unprinted').length, rows = manageRows(); $('manageCount').textContent = `選択 ${rows.filter(x => selected.has(x.id)).length}件 / 表示 ${rows.length}件 / 全 ${all}件`}
+    function renderManage() {
+      fillImportedSelect(data.filter(x => x.status === 'unprinted'));
+      const rows = manageRows();
+      $('manageBody').innerHTML = rows.length ? rows.map(x => `<div class="qritem"><input class="mcheck check" data-id="${x.id}" type="checkbox" ${selected.has(x.id) ? 'checked' : ''}><img src="${x.image}"><div class="note">納品日：${x.date ? dateLabel(x.date) : '未設定'}</div><div class="note">本店：${esc(x.mainName) || '未設定'}</div><div class="note">ホール：${esc(x.hall) || '未設定'}</div><div class="note">商品：${esc(x.product) || '未設定'}</div><div class="note">生成：${x.createdAt && !isNaN(new Date(x.createdAt)) ? fmtSent(x.createdAt) : '不明'}</div></div>`).join('') : `<div class="empty">${data.some(x => x.status === 'unprinted') ? '条件に該当するQRコードはここに表示されます。' : '再生成したQRコードはここに表示されます。'}</div>`;
+      document.querySelectorAll('.mcheck').forEach(e => e.onchange = () => {e.checked ? selected.add(e.dataset.id) : selected.delete(e.dataset.id); updateManageCount()});
+      updateManageCount()
+    }
+    $('manageMissing').onchange = renderManage; $('manageImported').onchange = renderManage;
+    $('selectAll').onclick = () => {manageRows().forEach(x => selected.add(x.id)); renderManage()}
+    $('unselectAll').onclick = () => {selected.clear(); renderManage()}
+    function afterLabelChange() {renderManage(); renderPending(); renderLists()}
+    function normalizeBulkDate(value) {
+      const match = value.trim().match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})$/);
+      if (!match) return null;
+      const year = Number(match[1]), month = Number(match[2]), day = Number(match[3]);
+      const date = new Date(Date.UTC(year, month - 1, day));
+      if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+    $('bulkDateText').addEventListener('input', () => {
+      const input = $('bulkDateText'), digits = input.value.replace(/\D/g, '').slice(0, 8);
+      input.value = digits.length <= 4 ? digits : digits.length <= 6 ? `${digits.slice(0, 4)}/${digits.slice(4)}` : `${digits.slice(0, 4)}/${digits.slice(4, 6)}/${digits.slice(6)}`;
+      $('bulkDate').value = normalizeBulkDate(input.value) || '';
+    });
+    $('openBulkDate').onclick = () => {
+      const picker = $('bulkDate');
+      try { if (picker.showPicker) picker.showPicker(); else picker.click(); }
+      catch (_) { picker.click(); }
+    };
+    $('bulkDate').addEventListener('change', () => {
+      const value = $('bulkDate').value;
+      $('bulkDateText').value = value ? value.replace(/-/g, '/') : '';
+    });
+    function bulk(field, id) {
+      let val;
+      if (field === 'date') {
+        val = normalizeBulkDate($('bulkDateText').value);
+        if (!val) return alert('納品日を YYYY/MM/DD 形式で正しく入力してください。');
+      } else {
+        val = $(id).value.trim();
+      }
+      if (!val) return alert('値を入力してください。');
+      const rows = manageRows().filter(x => selected.has(x.id));
+      if (!rows.length) return alert('対象QRを選択してください。');
+      rows.forEach(x => x[field] = val);
+      if (field === 'product') {const p = products(); if (!p.includes(val)) {p.push(val); localStorage.setItem(PRODUCTKEY, JSON.stringify(p))} }
+      save(); afterLabelChange();
+    }
+    $('applyDate').onclick = () => bulk('date', 'bulkDate'); $('applyMain').onclick = () => bulk('mainName', 'bulkMain'); $('applyHall').onclick = () => {if (!$('bulkHall').value) return alert('ホール名を選択してください。（先に本店名を選ぶと、ホール名の候補が表示されます）'); bulk('hall', 'bulkHall')}; $('applyProduct').onclick = () => bulk('product', 'bulkProduct');
+    $('clearLabels').onclick = () => {const rows = manageRows().filter(x => selected.has(x.id)); if (!rows.length) return alert('ラベルを消去するQRコードを選択してください。'); if (!confirm(`選択した${rows.length}件のQRコードについて、納品日・本店名・ホール名・商品名をすべて消去します。よろしいですか？`)) return; rows.forEach(x => {x.date = ''; x.mainName = ''; x.hall = ''; x.product = ''}); save(); afterLabelChange()};
+    $('deleteSelected').onclick = () => {const ids = manageRows().filter(x => selected.has(x.id)).map(x => x.id); if (!ids.length) return alert('削除するQRを選択してください。'); if (confirm(`${ids.length}件を削除しますか？`)) {data = data.filter(x => !ids.includes(x.id)); ids.forEach(id => selected.delete(id)); save(); renderManage(); renderPending()} }
+
+    function fillMainSelect() {const sel = $('bulkMain'), old = sel.value; sel.innerHTML = '<option value="">本店名を選択</option>' + mainNames().map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join(''); if (mainNames().includes(old)) sel.value = old; fillHallSelect()}
+    function fillHallSelect() {const m = $('bulkMain').value, sel = $('bulkHall'), old = sel.value; sel.innerHTML = '<option value="">ホール名を選択</option>' + hallsFor(m).map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join(''); if (hallsFor(m).includes(old)) sel.value = old}
+    $('bulkMain').onchange = fillHallSelect;
+    function renderLists() {$('productList').innerHTML = products().map(x => `<option value="${esc(x)}">`).join('')}
+
+    function dateMatch(x, v) {return !v || (v === '__none' ? !x.date : x.date === v)}
+    function fillDateSelect(sel, rows, includeUnset = true) {
+      const old = sel.value, ds = [...new Set(rows.map(x => x.date || ''))].filter(Boolean).sort(), hasNone = includeUnset && rows.some(x => !x.date);
+      sel.innerHTML = '<option value="">すべて表示</option>' + ds.map(d => `<option value="${esc(d)}">${esc(dateLabel(d))}</option>`).join('') + (hasNone ? '<option value="__none">納品日未設定</option>' : '');
+      if ([...sel.options].some(o => o.value === old)) sel.value = old
+    }
+    function printRows() {
+      const h = $('printHall').value, d = $('printDate').value;
+      return data.filter(x => x.status === 'unprinted' && (!h || x.hall === h) && dateMatch(x, d));
+    }
+    function refreshPrint() {
+      const oldHall = $('printHall').value;
+      const halls = [...new Set(data.filter(x => x.status === 'unprinted').map(x => x.hall).filter(Boolean))].sort();
+      $('printHall').innerHTML = '<option value="">すべて表示</option>' + halls.map(h => `<option value="${esc(h)}">${esc(h)}</option>`).join('');
+      if (halls.includes(oldHall)) $('printHall').value = oldHall;
+      const selectedHall = $('printHall').value;
+      const hallRows = data.filter(x => x.status === 'unprinted' && (!selectedHall || x.hall === selectedHall));
+      fillDateSelect($('printDate'), hallRows, false);
+      const rows = printRows(), all = data.filter(x => x.status === 'unprinted').length, selectedCount = rows.filter(x => printSelected.has(x.id)).length;
+      $('printCount').textContent = `選択 ${selectedCount}件 / 表示 ${rows.length}件 / 全 ${all}件`;
+      $('printBody').innerHTML = rows.length ? rows.map(x => `<div class="qritem"><input class="pcheck check" data-id="${x.id}" type="checkbox" ${printSelected.has(x.id) ? 'checked' : ''}><img src="${x.image}"><div class="note">納品日：${x.date ? dateLabel(x.date) : '未設定'}</div><div class="note">本店：${esc(x.mainName) || '未設定'}</div><div class="note">ホール：${esc(x.hall) || '未設定'}</div><div class="note">商品：${esc(x.product) || '未設定'}</div></div>`).join('') : '<div class="empty">条件に該当するQRコードはここに表示されます。</div>';
+      document.querySelectorAll('.pcheck').forEach(e => e.onchange = () => {e.checked ? printSelected.add(e.dataset.id) : printSelected.delete(e.dataset.id); refreshPrint()});
+      $('makePdf').disabled = !rows.some(x => printSelected.has(x.id));
+    }
+    $('printHall').onchange = refreshPrint; $('printDate').onchange = refreshPrint;
+    $('selectPrintAll').onclick = () => {printRows().forEach(x => printSelected.add(x.id)); refreshPrint()};
+    $('unselectPrintAll').onclick = () => {printRows().forEach(x => printSelected.delete(x.id)); refreshPrint()};
+
+    async function loadImage(src) {return new Promise((res, rej) => {const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src})}
+    async function makePdf() {
+      if (!window.jspdf) {checkLibs(); return alert('PDF作成用の部品(jsPDF)を読み込めていません。通信状態を確認して再読み込みしてください。')}
+      const rows = printRows().filter(x => printSelected.has(x.id)); if (!rows.length) return alert('印刷するQRコードを選択してください。');
+      const per = Number($('perPage').value), rpp = per === 4 ? 2 : 3, {jsPDF} = window.jspdf, doc = new jsPDF({orientation: 'portrait', unit: 'mm', format: 'a4'});
+      const PW = 1240, PH = 1754, margin = 36, gap = 14, header = 170, cellW = (PW - margin * 2 - gap) / 2, cellH = (PH - header - margin - gap * (rpp - 1)) / rpp;
+      const sorted = [...rows].sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999') || (a.hall || '').localeCompare(b.hall || '')), pages = [];
+      sorted.forEach(r => {const date = r.date || '', hall = r.hall || ''; const last = pages[pages.length - 1]; if (last && last.date === date && last.hall === hall && last.rows.length < per) last.rows.push(r); else pages.push({date, hall, rows: [r]})});
+      for (let pi = 0; pi < pages.length; pi++) {
+        const pg = pages[pi];
+        if (pi) doc.addPage(); const cv = document.createElement('canvas'); cv.width = PW; cv.height = PH; const ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, PW, PH); ctx.fillStyle = '#111'; ctx.textAlign = 'center';
+        const titleDate = pg.date; ctx.font = 'bold 52px sans-serif'; ctx.fillText(pg.hall || 'ホール未設定', PW / 2, 58);
+        ctx.font = 'bold 42px sans-serif'; ctx.fillText(titleDate ? dateLabel(titleDate) : '納品日未設定', PW / 2, 116);
+        for (let j = 0; j < pg.rows.length; j++) {
+          const r = pg.rows[j], col = j % 2, row = Math.floor(j / 2), x = margin + col * (cellW + gap), y = header + row * (cellH + gap);
+          ctx.strokeStyle = '#888'; ctx.lineWidth = 2; ctx.strokeRect(x, y, cellW, cellH);
+          const im = await loadImage(r.image), qr = Math.min(cellW - 30, cellH - 85);
+          ctx.imageSmoothingEnabled = false; ctx.drawImage(im, x + (cellW - qr) / 2, y + 18, qr, qr);
+          ctx.fillStyle = '#111'; ctx.font = '28px sans-serif'; ctx.fillText(r.product || '商品未設定', x + cellW / 2, y + qr + 58)
+        }
+        doc.addImage(cv.toDataURL('image/jpeg', .95), 'JPEG', 0, 0, 210, 297)
+      }
+      const now = new Date().toISOString(), batchId = 'batch-' + now + '-' + Math.random().toString(36).slice(2, 8); const ds = [...new Set(rows.map(x => x.date || ''))], hs = [...new Set(rows.map(x => x.hall || ''))];
+      const fileHall = hs.length === 1 ? (hs[0] || 'ホール未設定') : '複数ホール';
+      doc.save(`納品資料_${fileHall}_${ds.length === 1 ? (ds[0] ? dateLabel(ds[0]) : '日付未設定') : '複数日'}.pdf`);
+      rows.forEach(x => {x.status = 'printed'; x.printedAt = now; x.printBatchId = batchId; printSelected.delete(x.id)});
+      // ホールごとに直近2回分のPDF履歴を保持する。
+      for (const hall of hs) {
+        const batches = [...new Set(data.filter(x => x.status === 'printed' && (x.hall || '') === hall).sort((a, b) => (a.printedAt || '').localeCompare(b.printedAt || '')).map(x => x.printBatchId || ('legacy-' + x.printedAt)))];
+        while (batches.length > 2) {const old = batches.shift(); data = data.filter(x => !(x.status === 'printed' && (x.hall || '') === hall && (x.printBatchId || ('legacy-' + x.printedAt)) === old))}
+      }
+      save(); renderManage(); refreshPrint(); renderPrinted(); alert(`${rows.length}件を印刷済みに移動しました。ホールごとに直近2回分のPDF履歴を保持します。`);
+    }
+    $('makePdf').onclick = makePdf;
+
+    function hallOf(x) {return x.hall || ''}
+    function printedFiltered() {const h = $('printedHall').value, d = $('printedDate').value; return data.filter(x => x.status === 'printed' && (!h || hallOf(x) === (h === '__none' ? '' : h)) && dateMatch(x, d))}
+    function updatePrintedCount() {const all = data.filter(x => x.status === 'printed').length, rows = printedFiltered(); $('printedCount').textContent = `選択 ${rows.filter(x => printedSelected.has(x.id)).length}件 / 表示 ${rows.length}件 / 全 ${all}件`}
+    function renderPrinted() {
+      const all = data.filter(x => x.status === 'printed'), hsel = $('printedHall'), oldH = hsel.value, hs = [...new Set(all.map(hallOf))].sort();
+      hsel.innerHTML = '<option value="">すべて表示</option>' + hs.map(h => `<option value="${esc(h || '__none')}">${esc(h || 'ホール未設定')}</option>`).join('');
+      if ([...hsel.options].some(o => o.value === oldH)) hsel.value = oldH;
+      const hv = hsel.value; fillDateSelect($('printedDate'), all.filter(x => !hv || hallOf(x) === (hv === '__none' ? '' : hv)));
+      const rows = printedFiltered().sort((a, b) => (b.printedAt || '').localeCompare(a.printedAt || '')), groups = new Map();
+      rows.forEach(x => {const h = hallOf(x); if (!groups.has(h)) groups.set(h, []); groups.get(h).push(x)});
+      const card = x => `<div class="qritem"><input class="prcheck check" data-id="${x.id}" type="checkbox" ${printedSelected.has(x.id) ? 'checked' : ''}><img src="${x.image}"><div class="note">納品日：${x.date ? dateLabel(x.date) : '未設定'}</div><div class="note">本店：${esc(x.mainName) || '未設定'}</div><div class="note">ホール：${esc(x.hall) || '未設定'}</div><div class="note">商品：${esc(x.product) || '未設定'}</div><div class="note">印刷：${x.printedAt ? new Date(x.printedAt).toLocaleString('ja-JP') : ''}</div></div>`;
+      $('printedBody').innerHTML = groups.size ? [...groups.keys()].sort().map(h => `<div class="hallGroup"><div class="hallHead"><h3>${esc(h || 'ホール未設定')}</h3><span class="count">${groups.get(h).length}件</span><button class="secondary grpSel" data-hall="${esc(h)}">このホールを全選択</button></div><div class="qrgrid">${groups.get(h).map(card).join('')}</div></div>`).join('') : `<div class="empty">${all.length ? '条件に該当するQRコードはここに表示されます。' : '印刷済みのQRコードはここに表示されます。'}</div>`;
+      document.querySelectorAll('.prcheck').forEach(e => e.onchange = () => {e.checked ? printedSelected.add(e.dataset.id) : printedSelected.delete(e.dataset.id); updatePrintedCount()});
+      document.querySelectorAll('.grpSel').forEach(b => b.onclick = () => {printedFiltered().filter(x => hallOf(x) === b.dataset.hall).forEach(x => printedSelected.add(x.id)); renderPrinted()});
+      updatePrintedCount()
+    }
+    $('printedHall').onchange = renderPrinted; $('printedDate').onchange = renderPrinted;
+    $('selectPrintedAll').onclick = () => {printedFiltered().forEach(x => printedSelected.add(x.id)); renderPrinted()}
+    $('unselectPrintedAll').onclick = () => {printedFiltered().forEach(x => printedSelected.delete(x.id)); renderPrinted()}
+    $('restorePrinted').onclick = () => {const rows = printedFiltered().filter(x => printedSelected.has(x.id)); if (!rows.length) return alert('未印刷に戻すQRを選択してください。'); rows.forEach(x => {x.status = 'unprinted'; delete x.printedAt; printedSelected.delete(x.id)}); save(); renderPrinted(); renderManage()}
+
+
+    function loadSettings() {
+      const c = cfg(); $('gasUrl').value = c.url || ''; $('transferTo').value = c.to || ''; $('transferToken').value = c.token || '';
+      const cfgOk = !!(c.url && c.to && c.token), cfgText = cfgOk ? 'Gmail移行設定済み' : '未設定'; for (const id of ['transferConfigStatus', 'transferConfigStatusStep3']) {$(id).textContent = cfgText; $(id).className = 'status ' + (cfgOk ? 'ok' : '')} $('hallMaster').value = hallEntries().map(x => `${x.main},${x.hall}`).join('\n'); fillMainSelect(); renderLists()
+    }
+    $('saveTransferSettings').onclick = () => {localStorage.setItem(CFGKEY, JSON.stringify({url: $('gasUrl').value.trim(), to: $('transferTo').value.trim(), token: $('transferToken').value.trim()})); loadSettings()}
+    $('saveSettings').onclick = () => {const a = $('hallMaster').value.split(/\n/).map(x => x.split(',').map(v => v.trim())).filter(x => x.length >= 2 && x[0] && x[1]).map(x => ({main: x[0], hall: x.slice(1).join(',')})); if (!a.length) return alert('「本店名,ホール名」の形式で1行以上入力してください。'); localStorage.setItem(HALLKEY, JSON.stringify(a)); loadSettings(); alert('本店名・ホールリストを保存しました。')}
+    $('exportData').onclick = () => {const blob = new Blob([JSON.stringify({data, halls: hallEntries(), products: products()}, null, 2)], {type: 'application/json'}), a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'logistics_v4_backup.json'; a.click(); URL.revokeObjectURL(a.href)}
+    $('importData').onchange = async e => {const f = e.target.files[0]; if (!f) return; try {const o = JSON.parse(await f.text()); if (Array.isArray(o.data)) data = o.data; if (Array.isArray(o.halls)) localStorage.setItem(HALLKEY, JSON.stringify(o.halls)); if (Array.isArray(o.products)) localStorage.setItem(PRODUCTKEY, JSON.stringify(o.products)); save(); loadSettings(); renderPending(); renderManage(); refreshPrint(); renderPrinted(); alert('バックアップを読み込みました。')} catch (err) {alert('バックアップの読み込みに失敗しました。')} e.target.value = ''}
+    $('wipeAll').onclick = () => {if (confirm('QRデータをすべて削除しますか？')) {data = []; selected.clear(); pendingSelected.clear(); printSelected.clear(); printedSelected.clear(); sessionIds.clear(); saveSession(); save(); renderPending(); renderManage(); refreshPrint(); renderPrinted()} }
+
+    data = data.map(x => ({...x, url: x.url || String(x.qrKey || '').replace(/^qr:/, ''), mainName: x.mainName || ''})); save(); purgeSent(); sessionIds = new Set([...sessionIds].filter(id => {const x = data.find(y => y.id === id); return x && !x.sentAt})); saveSession(); loadSettings(); renderPending(); renderSent(); renderManage(); refreshPrint(); renderPrinted(); checkLibs();
+    if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?ver=60').catch(() => { }));
+  </script>
+</body>
+
+</html>
