@@ -1,4 +1,4 @@
-const CACHE_NAME = 'logistics-v6-1-cache-7';
+const CACHE_NAME = 'logistics-v6-1-cache-8';
 // './index.html' は Cloudflare が './' へ転送するため、転送済み応答を保存しないよう './' のみ登録
 const ASSETS = ['./', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 // 外部ライブラリ（バージョン固定）。オフライン／通信不良でも使えるようにキャッシュする。
@@ -21,6 +21,8 @@ self.addEventListener('activate', event => {
 });
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
+  // API（D1）の応答はキャッシュしない
+  if (new URL(event.request.url).pathname.startsWith('/api/')) return;
   // 外部ライブラリ：キャッシュ優先、なければ通信して保存
   if (CDN.includes(event.request.url)) {
     event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request).then(res => {

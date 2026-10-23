@@ -1075,6 +1075,17 @@
         <div id="transferConfigStatus" class="status">未設定</div>
       </div>
       <div class="card settings">
+        <h2>D1保存（サーバーへの自動バックアップ）</h2>
+        <p class="note">この端末のデータは、今まで通りブラウザに保存されます。トークンを設定すると、変更のたびに Cloudflare D1 にも自動で保存されます。<br>未設定の場合は、この端末のブラウザにだけ保存します（D1には送りません）。QRコード画像は保存せず、URLなどの情報を保存します。</p>
+        <div class="row">
+          <div class="field"><label>D1保存用トークン</label><input id="d1Token" type="password" autocomplete="off"
+              placeholder="システム管理者に問い合わせてください"></div>
+        </div>
+        <div class="actions"><button id="saveD1Settings">D1設定を保存</button><button id="syncD1Now"
+            class="secondary">今すぐD1に保存</button><button id="checkD1" class="secondary">D1の件数を確認</button></div>
+        <div id="d1Status" class="status">未設定（この端末のブラウザにだけ保存）</div>
+      </div>
+      <div class="card settings">
         <h2>本社名 / ホール名設定</h2>
         <p class="note">1行につき「本社名,ホール名」の形式で入力してください。同じ本社名に複数のホールを登録できます。</p>
         <div class="sampleBox" id="hallSample">本社名A,ホールA1
@@ -1129,6 +1140,7 @@
     let flashIds = new Set();
     // 保存。失敗（ブラウザの保存容量不足など）したら false を返す
     function save(quiet) {
+      scheduleD1(); // D1へも保存（トークン未設定なら何もしない）
       try {localStorage.setItem(KEY, JSON.stringify(data)); return true}
       catch (e) {if (!quiet) toast('保存できませんでした。ブラウザの保存容量が不足している可能性があります。バックアップを書き出し、不要なQRを削除してください。', 'err'); return false}
     }
@@ -1656,7 +1668,7 @@
 
     function loadSettings() {
       const c = cfg(); $('gasUrl').value = c.url || ''; $('transferTo').value = c.to || ''; $('transferToken').value = c.token || '';
-      const cfgOk = !!(c.url && c.to && c.token), cfgText = cfgOk ? 'Mail移行設定済み' : '未設定'; for (const id of ['transferConfigStatus', 'transferConfigStatusStep3']) {$(id).textContent = cfgText; $(id).className = 'status ' + (cfgOk ? 'ok' : '')} $('hallMaster').value = hallEntries().map(x => `${x.main},${x.hall}`).join('\n'); fillMainSelect(); renderLists()
+      const cfgOk = !!(c.url && c.to && c.token), cfgText = cfgOk ? 'Mail移行設定済み' : '未設定'; for (const id of ['transferConfigStatus', 'transferConfigStatusStep3']) {$(id).textContent = cfgText; $(id).className = 'status ' + (cfgOk ? 'ok' : '')} $('hallMaster').value = hallEntries().map(x => `${x.main},${x.hall}`).join('\n'); fillMainSelect(); renderLists(); loadD1Settings()
     }
     $('saveTransferSettings').onclick = () => {try {localStorage.setItem(CFGKEY, JSON.stringify({url: $('gasUrl').value.trim(), to: $('transferTo').value.trim(), token: $('transferToken').value.trim()}))} catch (e) {return toast('設定を保存できませんでした。ブラウザの保存容量を確認してください。', 'err')} loadSettings(); const c = cfg(); if (c.url && c.to && c.token) toast('移行設定を保存しました。'); else toast('保存しましたが、未入力の項目があります（GAS URL / 転送トークン / 送信先Mail）。', 'warn')}
     $('copyHallSample').onclick = async () => {
@@ -1664,10 +1676,85 @@
       try {await navigator.clipboard.writeText(t); toast('サンプルをコピーしました。')}
       catch (e) {const r = document.createRange(); r.selectNodeContents($('hallSample')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast('コピーできませんでした。選択状態にしたので、手動でコピーしてください。', 'warn')}
     };
-    $('saveSettings').onclick = () => {const a = $('hallMaster').value.split(/\n/).map(x => x.split(',').map(v => v.trim())).filter(x => x.length >= 2 && x[0] && x[1]).map(x => ({main: x[0], hall: x.slice(1).join(',')})); if (!a.length) return toast('「本社名,ホール名」の形式で1行以上入力してください。', 'warn'); try {localStorage.setItem(HALLKEY, JSON.stringify(a))} catch (e) {return toast('リストを保存できませんでした。ブラウザの保存容量を確認してください。', 'err')} loadSettings(); toast('本社名 / ホール名リストを保存しました。')}
+    $('saveSettings').onclick = () => {const a = $('hallMaster').value.split(/\n/).map(x => x.split(',').map(v => v.trim())).filter(x => x.length >= 2 && x[0] && x[1]).map(x => ({main: x[0], hall: x.slice(1).join(',')})); if (!a.length) return toast('「本社名,ホール名」の形式で1行以上入力してください。', 'warn'); try {localStorage.setItem(HALLKEY, JSON.stringify(a))} catch (e) {return toast('リストを保存できませんでした。ブラウザの保存容量を確認してください。', 'err')} loadSettings(); scheduleD1(); toast('本社名 / ホール名リストを保存しました。')}
     $('exportData').onclick = () => {const blob = new Blob([JSON.stringify({data, halls: hallEntries(), products: products()}, null, 2)], {type: 'application/json'}), a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'logistics_v4_backup.json'; a.click(); URL.revokeObjectURL(a.href)}
     $('importData').onchange = async e => {const f = e.target.files[0]; if (!f) return; try {const o = JSON.parse(await f.text()); if (Array.isArray(o.data)) data = o.data.map(normRec); if (Array.isArray(o.halls)) localStorage.setItem(HALLKEY, JSON.stringify(o.halls)); if (Array.isArray(o.products)) localStorage.setItem(PRODUCTKEY, JSON.stringify(o.products)); const ok = save(true); loadSettings(); renderPending(); renderManage(); refreshPrint(); renderPrinted(); if (ok) toast('バックアップを読み込みました。'); else toast('バックアップを読み込みましたが、保存に失敗しました（保存容量不足の可能性）。', 'err')} catch (err) {toast('バックアップの読み込みに失敗しました。ファイルの内容を確認してください。', 'err')} e.target.value = ''}
     $('wipeAll').onclick = () => {if (confirm('QRデータをすべて削除しますか？')) {data = []; selected.clear(); pendingSelected.clear(); printSelected.clear(); printedSelected.clear(); sessionIds.clear(); saveSession(); const ok = save(true); renderPending(); renderManage(); refreshPrint(); renderPrinted(); if (ok) toast('QRデータをすべて削除しました。', 'err'); else toast('削除しましたが、保存に失敗しました。', 'err')} }
+
+    // ===== D1への保存（localStorageの保存はそのまま。成功後にD1へも送る） =====
+    // ・トークン未設定なら何もしない。送信に失敗しても、画面とlocalStorageには影響しない。
+    // ・前回送った内容との差分（追加・変更・削除）だけを送る。QR画像（image）は送らない。
+    const D1CFGKEY = 'logistics_d1_cfg', D1SYNCKEY = 'logistics_d1_synced', D1CHUNK = 50;
+    let d1Timer = 0, d1Running = false, d1Again = false, d1Force = false, d1State = {type: '', msg: ''}, d1LastFailed = false;
+    function d1Token() {try {return (JSON.parse(localStorage.getItem(D1CFGKEY) || '{}').token || '').trim()} catch (e) {return ''}}
+    function d1Synced() {try {const o = JSON.parse(localStorage.getItem(D1SYNCKEY) || '{}'); return {rec: o.rec || {}, halls: o.halls || '', products: o.products || ''}} catch (e) {return {rec: {}, halls: '', products: ''}}}
+    function d1SaveSynced(o) {try {localStorage.setItem(D1SYNCKEY, JSON.stringify(o))} catch (e) { }}
+    function d1Sig(x) {const {image, ...r} = x; return JSON.stringify(r)}
+    function d1SetStatus(type, msg) {d1State = {type, msg}; const e = $('d1Status'); if (e) {e.textContent = msg; e.className = 'status ' + type}}
+    function loadD1Settings() {
+      $('d1Token').value = d1Token();
+      if (d1State.msg) return d1SetStatus(d1State.type, d1State.msg);
+      d1SetStatus(d1Token() ? 'ok' : '', d1Token() ? 'D1保存：有効（変更のたびに自動で保存します）' : '未設定（この端末のブラウザにだけ保存）')
+    }
+    function scheduleD1() {if (!d1Token()) return; clearTimeout(d1Timer); d1Timer = setTimeout(() => syncD1(), 1500)}
+    async function d1Post(token, payload) {
+      const res = await fetch('/api/sync', {method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}, body: JSON.stringify(payload)});
+      let j = null; try {j = await res.json()} catch (e) { }
+      if (!res.ok || !j || !j.ok) throw new Error((j && j.error) || ('HTTP ' + res.status));
+      return j
+    }
+    // force=true：差分ではなく全件を送り直す（何度送っても結果は同じ）
+    async function syncD1(force) {
+      const token = d1Token(); if (!token) return false;
+      if (d1Running) {d1Again = true; d1Force = d1Force || !!force; return false}
+      d1Running = true; clearTimeout(d1Timer);
+      try {
+        const st = d1Synced(), now = new Set(data.map(x => x.id));
+        const sigs = new Map(data.map(x => [x.id, d1Sig(x)]));
+        const ups = data.filter(x => force || st.rec[x.id] !== sigs.get(x.id));
+        const dels = Object.keys(st.rec).filter(id => !now.has(id));
+        const hallsRaw = localStorage.getItem(HALLKEY), prodList = products(), prodSig = JSON.stringify(prodList);
+        const sendHalls = hallsRaw !== null && (force || st.halls !== hallsRaw), sendProd = prodList.length > 0 && (force || st.products !== prodSig);
+        if (!ups.length && !dels.length && !sendHalls && !sendProd) {d1SetStatus('ok', 'D1保存：最新です（' + fmtMin(new Date().toISOString(), true) + '）'); d1LastFailed = false; return true}
+        d1SetStatus('', 'D1に保存しています…');
+        const chunks = []; for (let i = 0; i < ups.length; i += D1CHUNK) chunks.push(ups.slice(i, i + D1CHUNK)); if (!chunks.length) chunks.push([]);
+        for (let i = 0; i < chunks.length; i++) {
+          const payload = {upserts: chunks[i]};
+          if (i === 0) {payload.deletes = dels; if (sendHalls) payload.halls = hallEntries(); if (sendProd) payload.products = prodList}
+          await d1Post(token, payload);
+          // 送れた分だけ記録する（途中で失敗しても、次回は残りだけ送る）
+          chunks[i].forEach(x => {st.rec[x.id] = sigs.get(x.id)});
+          if (i === 0) {dels.forEach(id => {delete st.rec[id]}); if (sendHalls) st.halls = hallsRaw; if (sendProd) st.products = prodSig}
+          d1SaveSynced(st)
+        }
+        d1SetStatus('ok', `D1保存：完了（保存${ups.length}件 / 削除${dels.length}件・${fmtMin(new Date().toISOString(), true)}）`); d1LastFailed = false; return true
+      } catch (e) {
+        d1SetStatus('err', 'D1に保存できませんでした：' + (e.message || e) + '（この端末のブラウザには保存済みです。通信が戻ると自動で再送します）');
+        if (!d1LastFailed) toast('D1に保存できませんでした。この端末のブラウザには保存済みです。', 'warn');
+        d1LastFailed = true; return false
+      } finally {
+        d1Running = false;
+        if (d1Again) {const f = d1Force; d1Again = false; d1Force = false; setTimeout(() => syncD1(f), 300)}
+      }
+    }
+    $('saveD1Settings').onclick = async () => {
+      const t = $('d1Token').value.trim();
+      try {localStorage.setItem(D1CFGKEY, JSON.stringify({token: t}))} catch (e) {return toast('設定を保存できませんでした。ブラウザの保存容量を確認してください。', 'err')}
+      if (!t) {d1State = {type: '', msg: ''}; loadD1Settings(); return toast('D1保存を無効にしました。この端末のブラウザには、今まで通り保存されます。', 'warn')}
+      d1State = {type: '', msg: ''}; const ok = await syncD1(); if (ok) toast('D1に保存しました。')
+    };
+    $('syncD1Now').onclick = async () => {if (!d1Token()) return toast('先にD1保存用トークンを入力して「D1設定を保存」を押してください。', 'warn'); const ok = await syncD1(true); if (ok) toast('全データをD1に保存しました。')};
+    $('checkD1').onclick = async () => {
+      const t = d1Token(); if (!t) return toast('先にD1保存用トークンを入力して「D1設定を保存」を押してください。', 'warn');
+      d1SetStatus('', 'D1の件数を確認しています…');
+      try {
+        const res = await fetch('/api/records?summary=1', {headers: {'Authorization': 'Bearer ' + t}}); const j = await res.json().catch(() => null);
+        if (!res.ok || !j || !j.ok) throw new Error((j && j.error) || ('HTTP ' + res.status));
+        const c = j.counts, here = data.length;
+        d1SetStatus(c.total === here ? 'ok' : 'warn', `D1：${c.total}件（未印刷${c.unprinted} / 印刷済み${c.printed}）　この端末：${here}件` + (c.total === here ? '　一致しています。' : '　件数が異なります（スマホ・PCなど別端末のデータや、未送信分が原因の場合があります）。'))
+      } catch (e) {d1SetStatus('err', 'D1の件数を確認できませんでした：' + (e.message || e))}
+    };
+    window.addEventListener('online', () => scheduleD1());
 
     data = data.map(normRec); save(); purgeSent(); sessionIds = new Set([...sessionIds].filter(id => {const x = data.find(y => y.id === id); return x && !x.sentAt})); saveSession(); loadSettings(); renderPending(); renderSent(); renderManage(); refreshPrint(); renderPrinted(); checkLibs();
     if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?ver=616').catch(() => { }));
