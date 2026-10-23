@@ -57,11 +57,9 @@ export default {
       });
     }
 
-    // ルートURLは index.html に対応
-    if (path === "/") {
-      url.pathname = "/index.html";
-    }
-
-    return env.ASSETS.fetch(new Request(url.toString(), request));
+    // URLは書き換えず、Cloudflareの静的ファイル配信にそのまま任せる。
+    // （"/" → "/index.html" の書き換えは、Cloudflare側の
+    //   "/index.html" → "/" 自動転送とぶつかり、リダイレクトループになる）
+    return env.ASSETS.fetch(request);
   }
 };

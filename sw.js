@@ -1,5 +1,6 @@
-const CACHE_NAME = 'logistics-v6-1-cache-6';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const CACHE_NAME = 'logistics-v6-1-cache-7';
+// './index.html' は Cloudflare が './' へ転送するため、転送済み応答を保存しないよう './' のみ登録
+const ASSETS = ['./', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 // 外部ライブラリ（バージョン固定）。オフライン／通信不良でも使えるようにキャッシュする。
 const CDN = [
   'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js',
@@ -33,5 +34,5 @@ self.addEventListener('fetch', event => {
       const copy = response.clone(); caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
     }
     return response;
-  }).catch(() => caches.match(event.request).then(response => response || caches.match('./index.html'))));
+  }).catch(() => caches.match(event.request).then(response => response || caches.match('./'))));
 });
